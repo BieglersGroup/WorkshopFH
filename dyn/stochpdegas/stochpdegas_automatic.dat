@@ -4,7 +4,7 @@ param S:= 3 ;
 param cvar_lambda:=0.0;
 
 # read link data
-set LINK := 
+set link :=
 l1 
 l2 
 l3 

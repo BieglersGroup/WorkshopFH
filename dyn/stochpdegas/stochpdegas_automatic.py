@@ -19,29 +19,29 @@ def _tinit(m):
     # return [0,value(m.TF)]
 
 
-model.TIME = ContinuousSet(initialize=_tinit)
-model.DIS = ContinuousSet(bounds=(0.0, 1.0))
+model.time = ContinuousSet(initialize=_tinit)
+model.dis = ContinuousSet(bounds=(0.0, 1.0))
 model.S = Param(within=PositiveIntegers)
-model.SCEN = RangeSet(1, model.S)
+model.scen = RangeSet(1, model.S)
 
 # links
-model.LINK = Set()
-model.lstartloc = Param(model.LINK)
-model.lendloc = Param(model.LINK)
-model.ldiam = Param(model.LINK, within=PositiveReals, mutable=True)
-model.llength = Param(model.LINK, within=PositiveReals, mutable=True)
-model.ltype = Param(model.LINK)
+model.link = Set()
+model.lstartloc = Param(model.link)
+model.lendloc = Param(model.link)
+model.ldiam = Param(model.link, within=PositiveReals, mutable=True)
+model.llength = Param(model.link, within=PositiveReals, mutable=True)
+model.ltype = Param(model.link)
 
 
 def link_a_init_rule(m):
-    return (l for l in m.LINK if m.ltype[l] == "a")
+    return (l for l in m.link if m.ltype[l] == "a")
 
 
 model.LINK_A = Set(initialize=link_a_init_rule)
 
 
 def link_p_init_rule(m):
-    return (l for l in m.LINK if m.ltype[l] == "p")
+    return (l for l in m.link if m.ltype[l] == "p")
 
 
 model.LINK_P = Set(initialize=link_p_init_rule)
@@ -71,8 +71,8 @@ model.R = Param(initialize=8314.0, within=PositiveReals)
 model.M = Param(initialize=18.0, within=PositiveReals)
 model.pi = Param(initialize=3.14, within=PositiveReals)
 model.nu2 = Param(within=PositiveReals, mutable=True)
-model.lam = Param(model.LINK, within=PositiveReals, mutable=True)
-model.A = Param(model.LINK, within=NonNegativeReals, mutable=True)
+model.lam = Param(model.link, within=PositiveReals, mutable=True)
+model.A = Param(model.link, within=NonNegativeReals, mutable=True)
 model.Tgas = Param(initialize=293.15, within=PositiveReals)
 model.Cp = Param(initialize=2.34, within=PositiveReals)
 model.Cv = Param(initialize=1.85, within=PositiveReals)
@@ -87,9 +87,9 @@ model.pfac2 = Param(within=PositiveReals, initialize=1.0e-5)
 model.dfac = Param(within=PositiveReals, initialize=1.0e-3)
 model.lfac = Param(within=PositiveReals, initialize=1.0e+3)
 
-model.c1 = Param(model.LINK, within=PositiveReals, mutable=True)
-model.c2 = Param(model.LINK, within=PositiveReals, mutable=True)
-model.c3 = Param(model.LINK, within=PositiveReals, mutable=True)
+model.c1 = Param(model.link, within=PositiveReals, mutable=True)
+model.c2 = Param(model.link, within=PositiveReals, mutable=True)
+model.c3 = Param(model.link, within=PositiveReals, mutable=True)
 model.c4 = Param(within=PositiveReals, mutable=True)
 
 # cost factors
@@ -100,15 +100,15 @@ model.cs = Param(initialize=0.0, within=NonNegativeReals)
 model.TDEC = Param(within=PositiveReals)
 
 # define stochastic info
-model.rand_d = Param(model.SCEN, model.DEM, within=NonNegativeReals, mutable=True)
+model.rand_d = Param(model.scen, model.DEM, within=NonNegativeReals, mutable=True)
 
 
 # convert units for input data
 def rescale_rule(m):
-    for i in m.LINK:
+    for i in m.link:
         m.ldiam[i] = m.ldiam[i] * m.dfac
         m.llength[i] = m.llength[i] * m.lfac
-        # m.dx[i] = m.llength[i]/float(m.DIS.last())
+        # m.dx[i] = m.llength[i]/float(m.dis.last())
 
     for i in m.SUP:
         m.smin[i] = m.smin[i] * m.ffac * m.ffac2  # from scmx106/day to kg/s and then to scmx10-4/hr
@@ -126,7 +126,7 @@ model.rescale = BuildAction(rule=rescale_rule)
 
 
 def compute_constants(m):
-    for i in m.LINK:
+    for i in m.link:
         m.lam[i] = (2.0 * log10(3.7 * m.ldiam[i] / (m.eps * m.dfac))) ** (-2.0)
         m.A[i] = (1.0 / 4.0) * m.pi * m.ldiam[i] * m.ldiam[i]
         m.nu2 = m.gam * m.z * m.R * m.Tgas / m.M
@@ -141,7 +141,7 @@ model.compute_constants = BuildAction(rule=compute_constants)
 
 # set stochastic demands
 def compute_demands_rule(m):
-    for k in m.SCEN:
+    for k in m.scen:
         for j in m.DEM:
             if k == 2:
                 m.rand_d[k, j] = 1.1 * m.d[j]
@@ -170,7 +170,7 @@ def stochd_init(m, k, j, t):
         return m.d[j]
 
 
-model.stochd = Param(model.SCEN, model.DEM, model.TIME, within=PositiveReals, mutable=True, default=stochd_init)
+model.stochd = Param(model.scen, model.DEM, model.time, within=PositiveReals, mutable=True, default=stochd_init)
 
 
 # define temporal variables
@@ -178,30 +178,30 @@ def p_bounds_rule(m, k, j, t):
     return (value(m.pmin[j]), value(m.pmax[j]))
 
 
-model.p = Var(model.SCEN, model.NODE, model.TIME, bounds=p_bounds_rule, initialize=50.0)
-model.dp = Var(model.SCEN, model.LINK_A, model.TIME, bounds=(0.0, 100.0), initialize=10.0)
-model.fin = Var(model.SCEN, model.LINK, model.TIME, bounds=(1.0, 500.0), initialize=100.0)
-model.fout = Var(model.SCEN, model.LINK, model.TIME, bounds=(1.0, 500.0), initialize=100.0)
+model.p = Var(model.scen, model.NODE, model.time, bounds=p_bounds_rule, initialize=50.0)
+model.dp = Var(model.scen, model.LINK_A, model.time, bounds=(0.0, 100.0), initialize=10.0)
+model.fin = Var(model.scen, model.link, model.time, bounds=(1.0, 500.0), initialize=100.0)
+model.fout = Var(model.scen, model.link, model.time, bounds=(1.0, 500.0), initialize=100.0)
 
 
 def s_bounds_rule(m, k, j, t):
     return (0.01, value(m.smax[j]))
 
 
-model.s = Var(model.SCEN, model.SUP, model.TIME, bounds=s_bounds_rule, initialize=10.0)
-model.dem = Var(model.SCEN, model.DEM, model.TIME, initialize=100.0)
-model.pow = Var(model.SCEN, model.LINK_A, model.TIME, bounds=(0.0, 3000.0), initialize=1000.0)
-model.slack = Var(model.SCEN, model.LINK, model.TIME, model.DIS, bounds=(0.0, None), initialize=10.0)
+model.s = Var(model.scen, model.SUP, model.time, bounds=s_bounds_rule, initialize=10.0)
+model.dem = Var(model.scen, model.DEM, model.time, initialize=100.0)
+model.pow = Var(model.scen, model.LINK_A, model.time, bounds=(0.0, 3000.0), initialize=1000.0)
+model.slack = Var(model.scen, model.link, model.time, model.dis, bounds=(0.0, None), initialize=10.0)
 
 # define spatial-temporal variables
-model.px = Var(model.SCEN, model.LINK, model.TIME, model.DIS, bounds=(10.0, 100.0), initialize=50.0)
-model.fx = Var(model.SCEN, model.LINK, model.TIME, model.DIS, bounds=(1.0, 100.0), initialize=100.0)
+model.px = Var(model.scen, model.link, model.time, model.dis, bounds=(10.0, 100.0), initialize=50.0)
+model.fx = Var(model.scen, model.link, model.time, model.dis, bounds=(1.0, 100.0), initialize=100.0)
 
 # define derivatives
-model.dpxdt = DerivativeVar(model.px, wrt=model.TIME, initialize=0)
-model.dpxdx = DerivativeVar(model.px, wrt=model.DIS, initialize=0)
-model.dfxdt = DerivativeVar(model.fx, wrt=model.TIME, initialize=0)
-model.dfxdx = DerivativeVar(model.fx, wrt=model.DIS, initialize=0)
+model.dpxdt = DerivativeVar(model.px, wrt=model.time, initialize=0)
+model.dpxdx = DerivativeVar(model.px, wrt=model.dis, initialize=0)
+model.dfxdt = DerivativeVar(model.fx, wrt=model.time, initialize=0)
+model.dfxdx = DerivativeVar(model.fx, wrt=model.dis, initialize=0)
 
 
 # ----------- MODEL --------------
@@ -212,16 +212,16 @@ def powereq_rule(m, j, i, t):
                 ((m.p[j, m.lstartloc[i], t] + m.dp[j, i, t]) / m.p[j, m.lstartloc[i], t]) ** m.om - 1.0)
 
 
-model.powereq = Constraint(model.SCEN, model.LINK_A, model.TIME, rule=powereq_rule)
+model.powereq = Constraint(model.scen, model.LINK_A, model.time, rule=powereq_rule)
 
 # cvar model
 model.cvar_lambda = Param(within=NonNegativeReals)
 model.nu = Var(initialize=100.0)
-model.phi = Var(model.SCEN, bounds=(0.0, None), initialize=100.0)
+model.phi = Var(model.scen, bounds=(0.0, None), initialize=100.0)
 
 
 def cvarcost_rule(m):
-    return (1.0 / m.S) * sum((m.phi[k] / (1.0 - 0.95) + m.nu) for k in m.SCEN)
+    return (1.0 / m.S) * sum((m.phi[k] / (1.0 - 0.95) + m.nu) for k in m.scen)
 
 
 model.cvarcost = Expression(rule=cvarcost_rule)
@@ -229,87 +229,87 @@ model.cvarcost = Expression(rule=cvarcost_rule)
 
 # node balances
 def nodeeq_rule(m, k, i, t):
-    return sum(m.fout[k, j, t] for j in m.LINK if m.lendloc[j] == i) + \
+    return sum(m.fout[k, j, t] for j in m.link if m.lendloc[j] == i) + \
            sum(m.s[k, j, t] for j in m.SUP if m.sloc[j] == i) - \
-           sum(m.fin[k, j, t] for j in m.LINK if m.lstartloc[j] == i) - \
+           sum(m.fin[k, j, t] for j in m.link if m.lstartloc[j] == i) - \
            sum(m.dem[k, j, t] for j in m.DEM if m.dloc[j] == i) == 0.0
 
 
-model.nodeeq = Constraint(model.SCEN, model.NODE, model.TIME, rule=nodeeq_rule)
+model.nodeeq = Constraint(model.scen, model.NODE, model.time, rule=nodeeq_rule)
 
 
 # boundary conditions flow
 def flow_start_rule(m, j, i, t):
-    return m.fx[j, i, t, m.DIS.first()] == m.fin[j, i, t]
+    return m.fx[j, i, t, m.dis.first()] == m.fin[j, i, t]
 
 
-model.flow_start = Constraint(model.SCEN, model.LINK, model.TIME, rule=flow_start_rule)
+model.flow_start = Constraint(model.scen, model.link, model.time, rule=flow_start_rule)
 
 
 def flow_end_rule(m, j, i, t):
-    return m.fx[j, i, t, m.DIS.last()] == m.fout[j, i, t]
+    return m.fx[j, i, t, m.dis.last()] == m.fout[j, i, t]
 
 
-model.flow_end = Constraint(model.SCEN, model.LINK, model.TIME, rule=flow_end_rule)
+model.flow_end = Constraint(model.scen, model.link, model.time, rule=flow_end_rule)
 
 
 # First PDE for gas network model
 def flow_rule(m, j, i, t, k):
-    if t == m.TIME.first() or k == m.DIS.last():
+    if t == m.time.first() or k == m.dis.last():
         return Constraint.Skip  # Do not apply pde at initial time or final location
     return m.dpxdt[j, i, t, k] / 3600 + m.c1[i] / m.llength[i] * m.dfxdx[j, i, t, k] == 0
 
 
-model.flow = Constraint(model.SCEN, model.LINK, model.TIME, model.DIS, rule=flow_rule)
+model.flow = Constraint(model.scen, model.link, model.time, model.dis, rule=flow_rule)
 
 
 # Second PDE for gas network model
 def press_rule(m, j, i, t, k):
-    if t == m.TIME.first() or k == m.DIS.last():
+    if t == m.time.first() or k == m.dis.last():
         return Constraint.Skip  # Do not apply pde at initial time or final location
     return m.dfxdt[j, i, t, k] / 3600 == -m.c2[i] / m.llength[i] * m.dpxdx[j, i, t, k] - m.slack[j, i, t, k]
 
 
-model.press = Constraint(model.SCEN, model.LINK, model.TIME, model.DIS, rule=press_rule)
+model.press = Constraint(model.scen, model.link, model.time, model.dis, rule=press_rule)
 
 
 def slackeq_rule(m, j, i, t, k):
-    if t == m.TIME.last():
+    if t == m.time.last():
         return Constraint.Skip
     return m.slack[j, i, t, k] * m.px[j, i, t, k] == m.c3[i] * m.fx[j, i, t, k] * m.fx[j, i, t, k]
 
 
-model.slackeq = Constraint(model.SCEN, model.LINK, model.TIME, model.DIS, rule=slackeq_rule)
+model.slackeq = Constraint(model.scen, model.link, model.time, model.dis, rule=slackeq_rule)
 
 
 # boundary conditions pressure, passive links
 def presspas_start_rule(m, j, i, t):
-    return m.px[j, i, t, m.DIS.first()] == m.p[j, m.lstartloc[i], t]
+    return m.px[j, i, t, m.dis.first()] == m.p[j, m.lstartloc[i], t]
 
 
-model.presspas_start = Constraint(model.SCEN, model.LINK_P, model.TIME, rule=presspas_start_rule)
+model.presspas_start = Constraint(model.scen, model.LINK_P, model.time, rule=presspas_start_rule)
 
 
 def presspas_end_rule(m, j, i, t):
-    return m.px[j, i, t, m.DIS.last()] == m.p[j, m.lendloc[i], t]
+    return m.px[j, i, t, m.dis.last()] == m.p[j, m.lendloc[i], t]
 
 
-model.presspas_end = Constraint(model.SCEN, model.LINK_P, model.TIME, rule=presspas_end_rule)
+model.presspas_end = Constraint(model.scen, model.LINK_P, model.time, rule=presspas_end_rule)
 
 
 # boundary conditions pressure, active links
 def pressact_start_rule(m, j, i, t):
-    return m.px[j, i, t, m.DIS.first()] == m.p[j, m.lstartloc[i], t] + m.dp[j, i, t]
+    return m.px[j, i, t, m.dis.first()] == m.p[j, m.lstartloc[i], t] + m.dp[j, i, t]
 
 
-model.pressact_start = Constraint(model.SCEN, model.LINK_A, model.TIME, rule=pressact_start_rule)
+model.pressact_start = Constraint(model.scen, model.LINK_A, model.time, rule=pressact_start_rule)
 
 
 def pressact_end_rule(m, j, i, t):
-    return m.px[j, i, t, m.DIS.last()] == m.p[j, m.lendloc[i], t]
+    return m.px[j, i, t, m.dis.last()] == m.p[j, m.lendloc[i], t]
 
 
-model.pressact_end = Constraint(model.SCEN, model.LINK_A, model.TIME, rule=pressact_end_rule)
+model.pressact_end = Constraint(model.scen, model.LINK_A, model.time, rule=pressact_end_rule)
 
 
 # fix pressure at supply nodes
@@ -317,7 +317,7 @@ def suppres_rule(m, k, j, t):
     return m.p[k, m.sloc[j], t] == m.pmin[m.sloc[j]]
 
 
-model.suppres = Constraint(model.SCEN, model.SUP, model.TIME, rule=suppres_rule)
+model.suppres = Constraint(model.scen, model.SUP, model.time, rule=suppres_rule)
 
 
 # discharge pressure for compressors
@@ -325,26 +325,26 @@ def dispress_rule(m, j, i, t):
     return m.p[j, m.lstartloc[i], t] + m.dp[j, i, t] <= m.pmax[m.lstartloc[i]]
 
 
-model.dispress = Constraint(model.SCEN, model.LINK_A, model.TIME, rule=dispress_rule)
+model.dispress = Constraint(model.scen, model.LINK_A, model.time, rule=dispress_rule)
 
 
 # ss constraints
 def flow_ss_rule(m, j, i, k):
-    if k == m.DIS.last():
+    if k == m.dis.last():
         return Constraint.Skip
-    return m.dfxdx[j, i, m.TIME.first(), k] / m.llength[i] == 0.0
+    return m.dfxdx[j, i, m.time.first(), k] / m.llength[i] == 0.0
 
 
-model.flow_ss = Constraint(model.SCEN, model.LINK, model.DIS, rule=flow_ss_rule)
+model.flow_ss = Constraint(model.scen, model.link, model.dis, rule=flow_ss_rule)
 
 
 def pres_ss_rule(m, j, i, k):
-    if k == m.DIS.last():
+    if k == m.dis.last():
         return Constraint.Skip
-    return 0.0 == - m.c2[i] / m.llength[i] * m.dpxdx[j, i, m.TIME.first(), k] - m.slack[j, i, m.TIME.first(), k]
+    return 0.0 == - m.c2[i] / m.llength[i] * m.dpxdx[j, i, m.time.first(), k] - m.slack[j, i, m.time.first(), k]
 
 
-model.pres_ss = Constraint(model.SCEN, model.LINK, model.DIS, rule=pres_ss_rule)
+model.pres_ss = Constraint(model.scen, model.link, model.dis, rule=pres_ss_rule)
 
 
 # non-anticipativity constraints
@@ -356,7 +356,7 @@ def nonantdq_rule(m, j, i, t):
     return m.dp[j, i, t] == m.dp[1, i, t]
 
 
-model.nonantdq = Constraint(model.SCEN, model.LINK_A, model.TIME, rule=nonantdq_rule)
+model.nonantdq = Constraint(model.scen, model.LINK_A, model.time, rule=nonantdq_rule)
 
 
 def nonantde_rule(m, j, i, t):
@@ -367,4 +367,4 @@ def nonantde_rule(m, j, i, t):
     return m.dem[j, i, t] == m.dem[1, i, t]
 
 
-model.nonantde = Constraint(model.SCEN, model.DEM, model.TIME, rule=nonantde_rule)
+model.nonantde = Constraint(model.scen, model.DEM, model.time, rule=nonantde_rule)
