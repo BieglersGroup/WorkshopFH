@@ -1,0 +1,7 @@
+
+/tmp/tmpevaphbkm.pyomo.nl -AMPL 	1567462723.793076	n	48426	me	46600	mi	2405	Iter	54	CPUs	7.704146e+00	f:	9.455917e-03	inf_pr:	1.455192e-11	inf_du:	2.505914e-14	STAT:	0
+/tmp/tmprwm34f_z.pyomo.nl -AMPL 	1567462756.200093	n	29056	me	27872	mi	1443	Iter	50	CPUs	7.059881e+00	f:	9.204908e-03	inf_pr:	1.455192e-11	inf_du:	2.505922e-14	STAT:	0
+/tmp/tmpmtcnx74h.pyomo.nl -AMPL 	1567462776.790662	n	67796	me	65328	mi	3367	Iter	83	CPUs	1.973134e+01	f:	9.562777e-03	inf_pr:	3.017888e-11	inf_du:	2.505920e-14	STAT:	0
+/tmp/tmpczvd0oau.pyomo.nl -AMPL 	1567463465.171913	n	29056	me	27872	mi	1443	Iter	50	CPUs	7.025370e+00	f:	9.204908e-03	inf_pr:	1.455192e-11	inf_du:	2.505922e-14	STAT:	0
+/tmp/tmp2ghqwrf4.pyomo.nl -AMPL 	1567464120.273812	n	29056	me	27872	mi	1443	Iter	50	CPUs	7.021471e+00	f:	9.204908e-03	inf_pr:	1.455192e-11	inf_du:	2.505922e-14	STAT:	0
+/tmp/tmpwq4zzvj5.pyomo.nl -AMPL 	1568060996.788289	n	29056	me	27872	mi	1443	Iter	53	CPUs	1.235456e+01	f:	9.204908e-03	inf_pr:	1.455192e-11	inf_du:	2.505918e-14	STAT:	0
