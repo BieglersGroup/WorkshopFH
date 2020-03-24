@@ -7,7 +7,7 @@ appdirs=1.4.3=py_1
 attrs=19.1.0=py37_1
 backcall=0.1.0=py37_0
 blas=1.0=mkl
-bleach=3.1.0=py37_0
+bleach>=3.1.2=py37_0
 ca-certificates=2019.6.16=hecc5488_0
 certifi=2019.6.16=py37_1
 coincbc=2.10.3=hab63836_2
